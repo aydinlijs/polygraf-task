@@ -1,12 +1,14 @@
-import {
+import parser from './index';
+
+const {
+  getProductASIN,
+  getProductPrice,
+  getReviews,
+  getSellerInformation,
+  parseInPlatformAccountId,
   queryProductInfo,
   queryProductInfoByAttribute,
-  getProductASIN,
-  getSellerInformation,
-  getProductPrice,
-  parseInPlatformAccountId,
-  getReviews,
-} from './helpers';
+} = parser;
 
 // Mocking the document to simulate the DOM structure
 const setupDOM = html => {

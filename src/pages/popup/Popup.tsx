@@ -1,7 +1,10 @@
 import '@pages/popup/Popup.css';
 import withErrorBoundary from '@src/shared/hoc/withErrorBoundary';
 import withSuspense from '@src/shared/hoc/withSuspense';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+
+const MAX_REVIEW_LENGTH = 150;
+const RATE_LIMIT = 3000; // use can request a scrape every three seconds
 
 const product_labels = {
   img: 'Image',
@@ -19,24 +22,39 @@ const logTitle = title => {
   console.log(new Array(150).fill('-').join(''));
 };
 
-const MAX_REVIEW_LENGTH = 150;
-const RATE_LIMIT = 3000; // use can request a scrape every two seconds
+const trimReview = (rev: string) =>
+  rev.length > MAX_REVIEW_LENGTH ? rev.substr(0, MAX_REVIEW_LENGTH - 3) + '...' : rev;
 
 const Popup = () => {
   const lastClicked = useRef(0);
+  const extraClicked = useRef(0);
   const timeout = useRef(null);
   const [message, setMessage] = useState({ text: '', type: 'warning' });
+
+  const displayMessage = useCallback(
+    (text, type = 'warning') => {
+      if (!message.text) {
+        setMessage({ text, type });
+        timeout.current = setTimeout(() => setMessage({ text: '', type: 'warning' }), RATE_LIMIT);
+      }
+    },
+    [message.text],
+  );
 
   useEffect(() => {
     const messageListener = message => {
       if (message.action === 'fetchProductDetails') {
+        if (!message.data.in_platform_id) {
+          displayMessage('The page is not a product page, please navigate to one.', 'error');
+          return;
+        }
         logTitle('Product details');
 
         Object.keys(product_labels).forEach(key => {
           console.log(`\n${product_labels[key]}:\n        ${message.data[key]}\n\n`);
         });
 
-        const { seller } = message.data;
+        const { seller, reviews } = message.data;
 
         console.log(`\nSeller:\n
         Name: ${seller.name}\n
@@ -47,10 +65,7 @@ const Popup = () => {
 
         logTitle('Reviews');
 
-        const trimReview = (rev: string) =>
-          rev.length > MAX_REVIEW_LENGTH ? rev.substr(0, MAX_REVIEW_LENGTH - 3) + '...' : rev;
-
-        message.data.reviews.forEach((review, index) => {
+        reviews.forEach((review, index) => {
           console.log(`\n${index + 1}. ${review.author.full_name} (${review.platform_rating})\n
           ${trimReview(review.review)}\n
           [Full review in profile] -> ${seller.platform.url}/${review.author.profile_url}\n
@@ -66,7 +81,7 @@ const Popup = () => {
     return () => {
       chrome.runtime.onMessage.removeListener(messageListener);
     };
-  }, []);
+  }, [displayMessage]);
 
   const scrape = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -74,17 +89,19 @@ const Popup = () => {
 
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       const activeTab = tabs[0];
-      console.log(activeTab.id, 'active tab id');
       const now = Date.now();
 
       if (now - lastClicked.current < RATE_LIMIT) {
-        setMessage({ text: 'Too fast! Wait for a little before clicking again.', type: 'warning' });
-        timeout.current = setTimeout(() => setMessage({ text: '', type: 'warning' }), RATE_LIMIT);
+        if (!extraClicked.current) {
+          displayMessage('Too fast! Wait for a little before clicking again.');
+        }
+
+        extraClicked.current = now;
         return;
       }
 
+      extraClicked.current = 0;
       lastClicked.current = now;
-
       chrome.scripting.executeScript(
         {
           target: { tabId: activeTab.id },
@@ -92,8 +109,7 @@ const Popup = () => {
         },
         function () {
           if (chrome.runtime.lastError) {
-            setMessage({ text: `There was an error: ${chrome.runtime.lastError}`, type: 'error' });
-            setTimeout(() => setMessage({ text: '', type: 'warning' }), RATE_LIMIT);
+            displayMessage(`There was an error: ${chrome.runtime.lastError.message}`, 'error');
           }
         },
       );
@@ -110,4 +126,4 @@ const Popup = () => {
   );
 };
 
-export default withErrorBoundary(withSuspense(Popup, <div> Loading ... </div>), <div> Error Occur </div>);
+export default withErrorBoundary(withSuspense(Popup, <div> Loading ... </div>), <div> Error Occured </div>);
