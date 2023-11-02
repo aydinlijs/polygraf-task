@@ -5,34 +5,23 @@ import packageJson from './package.json';
  */
 const manifest: chrome.runtime.ManifestV3 = {
   manifest_version: 3,
-  name: packageJson.name,
+  name: 'Polygraf Amazon Scraper',
   version: packageJson.version,
   description: packageJson.description,
-  permissions: ['storage'],
-  options_page: 'src/pages/options/index.html',
+  permissions: ['scripting', 'storage', 'tabs'],
   background: {
     service_worker: 'src/pages/background/index.js',
     type: 'module',
   },
+  host_permissions: ['https://www.amazon.com/*', 'https://www.amazon.co.uk/*'],
   action: {
     default_popup: 'src/pages/popup/index.html',
     default_icon: 'icon-34.png',
   },
-  chrome_url_overrides: {
-    newtab: 'src/pages/newtab/index.html',
-  },
   icons: {
     '128': 'icon-128.png',
   },
-  content_scripts: [
-    {
-      matches: ['http://*/*', 'https://*/*', '<all_urls>'],
-      js: ['src/pages/content/index.js'],
-      // KEY for cache invalidation
-      css: ['assets/css/contentStyle<KEY>.chunk.css'],
-    },
-  ],
-  devtools_page: 'src/pages/devtools/index.html',
+  content_scripts: [],
   web_accessible_resources: [
     {
       resources: ['assets/js/*.js', 'assets/css/*.css', 'icon-128.png', 'icon-34.png'],

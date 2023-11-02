@@ -1,45 +1,27 @@
-.App {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  text-align: center;
-  height: 100%;
-  padding: 10px;
-  background-color: #282c34;
+.extension-popup {
+  padding: 10px 20px;
 }
 
-.App-logo {
-  height: 30vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+.scraper-btn {
+  background-color: teal;
   color: white;
+  padding: 10px;
+  width: 100%;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  border-color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.message {
+  font-size: 12px;
+  margin-top: 10px;
+  font-weight: 600;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.message.error {
+  color: red;
+}
+.message.warning {
+  color: orange;
 }

@@ -15,7 +15,7 @@
     "allowSyntheticDefaultImports": true,
     "lib": ["dom", "dom.iterable", "esnext"],
     "forceConsistentCasingInFileNames": true,
-    "typeRoots": ["./src/global.d.ts"],
+    "typeRoots": ["./node_modules/@types", "./src/global.d.ts"],
     "paths": {
       "@root/*": ["./*"],
       "@src/*": ["src/*"],
